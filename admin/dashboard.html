@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - OM Tailor</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Cormorant+Garamond:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="../assets/css/styles.css">
+    <link rel="stylesheet" href="../assets/css/admin.css">
+</head>
+<body class="admin-body">
+
+    <!-- Top Navigation -->
+    <header class="border-b border-neutral-800 bg-[#121212] px-6 py-4 flex justify-between items-center sticky top-0 z-40">
+        <div class="flex items-center gap-3">
+            <h1 class="text-2xl font-serif font-bold text-amber-400">OM TAILOR</h1>
+            <span class="text-xs bg-amber-500/20 text-amber-400 border border-amber-500/30 px-2 py-0.5 rounded uppercase font-semibold">Master Workshop</span>
+        </div>
+        <div class="flex items-center gap-4">
+            <div id="dbStatusBadge" class="text-xs bg-neutral-900 px-3 py-1.5 rounded-full border border-neutral-700">
+                <span class="text-gray-400"><i class="fas fa-spinner fa-spin"></i> Checking Supabase...</span>
+            </div>
+            <a href="../index.html" class="text-xs text-gray-400 hover:text-white transition">Live Website</a>
+            <button onclick="window.AuthService.logoutAdmin()" class="text-xs text-rose-400 hover:text-rose-300 transition flex items-center gap-1.5 border border-rose-500/20 px-3 py-1.5 rounded">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </button>
+        </div>
+    </header>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+        
+        <!-- Metrics Row -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            <div class="admin-card p-5">
+                <div class="text-xs uppercase text-gray-400 font-semibold tracking-wider">Total Active Orders</div>
+                <div id="statTotalOrders" class="text-3xl font-bold text-white mt-2">--</div>
+            </div>
+            <div class="admin-card p-5">
+                <div class="text-xs uppercase text-blue-400 font-semibold tracking-wider">In Workshop / Stitching</div>
+                <div id="statInProgress" class="text-3xl font-bold text-white mt-2">--</div>
+            </div>
+            <div class="admin-card p-5">
+                <div class="text-xs uppercase text-emerald-400 font-semibold tracking-wider">Ready for Trial/Delivery</div>
+                <div id="statReady" class="text-3xl font-bold text-white mt-2">--</div>
+            </div>
+            <div class="admin-card p-5">
+                <div class="text-xs uppercase text-amber-400 font-semibold tracking-wider">Total Revenue</div>
+                <div id="statRevenue" class="text-3xl font-bold text-amber-400 mt-2">--</div>
+            </div>
+        </div>
+
+        <!-- 1-Day Delivery Due Alert & Notification Center -->
+        <div id="deliveryRemindersCard" class="hidden admin-card p-5 border-l-4 border-amber-500 bg-gradient-to-r from-amber-500/10 via-[#171717] to-neutral-900 shadow-xl space-y-3">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                <div class="flex items-center gap-2.5">
+                    <span class="w-8 h-8 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/40 flex items-center justify-center text-sm shadow animate-pulse">
+                        <i class="fas fa-bell"></i>
+                    </span>
+                    <div>
+                        <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                            <span>Delivery Due Reminder Center (1 दिन पहले डिलीवरी अलर्ट)</span>
+                            <span id="reminderCountBadge" class="bg-amber-500 text-neutral-950 px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase">1 Alert</span>
+                        </h3>
+                        <p class="text-xs text-gray-400">Orders due for delivery tomorrow or today — send 1-click WhatsApp customer reminders</p>
+                    </div>
+                </div>
+            </div>
+            <!-- Alert Items List -->
+            <div id="reminderItemsList" class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+                <!-- Dynamically generated reminder cards -->
+            </div>
+        </div>
+
+        <!-- Orders Management Section -->
+        <div class="admin-card overflow-hidden">
+            <div class="p-5 border-b border-neutral-800 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h2 class="text-lg font-bold text-white">Live Orders & Status Controller</h2>
+                    <p class="text-xs text-gray-400 mt-0.5">Update stage progress in real-time for customer tracking</p>
+                </div>
+                <div class="flex items-center gap-3 w-full md:w-auto">
+                    <div class="w-full md:w-64 relative">
+                        <input type="text" id="orderSearchInput" placeholder="Search customer or order no..."
+                               class="w-full bg-[#101010] border border-neutral-700 rounded-lg pl-9 pr-3 py-2 text-xs text-white focus:border-amber-400 focus:outline-none">
+                        <i class="fas fa-search absolute left-3 top-2.5 text-gray-500 text-xs"></i>
+                    </div>
+                    <button onclick="openNewOrderModal()" class="whitespace-nowrap px-4 py-2 bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold text-xs uppercase tracking-wider rounded-lg transition flex items-center gap-2 shadow-lg shadow-amber-500/10">
+                        <i class="fas fa-plus"></i> New Order & Naap
+                    </button>
+                </div>
+            </div>
+
+            <!-- Category Tabs Bar -->
+            <div class="px-5 pt-2 border-b border-neutral-800 flex items-center gap-2 overflow-x-auto text-xs no-scrollbar bg-neutral-900/60">
+                <button type="button" onclick="setOrdersCategory('all')" id="tab-cat-all"
+                        class="order-tab-btn active px-3.5 py-2.5 font-bold border-b-2 border-amber-400 text-amber-400 transition whitespace-nowrap">
+                    All Orders (<span id="catCountAll">0</span>)
+                </button>
+                <button type="button" onclick="setOrdersCategory('due_tomorrow')" id="tab-cat-due_tomorrow"
+                        class="order-tab-btn px-3.5 py-2.5 font-semibold border-b-2 border-transparent text-gray-400 hover:text-white transition whitespace-nowrap flex items-center gap-1.5">
+                    <i class="fas fa-clock text-amber-400"></i> Due Tomorrow (1-Day Left) (<span id="catCountTomorrow" class="text-amber-400 font-bold">0</span>)
+                </button>
+                <button type="button" onclick="setOrdersCategory('workshop')" id="tab-cat-workshop"
+                        class="order-tab-btn px-3.5 py-2.5 font-semibold border-b-2 border-transparent text-gray-400 hover:text-white transition whitespace-nowrap">
+                    In Workshop (<span id="catCountWorkshop">0</span>)
+                </button>
+                <button type="button" onclick="setOrdersCategory('ready')" id="tab-cat-ready"
+                        class="order-tab-btn px-3.5 py-2.5 font-semibold border-b-2 border-transparent text-gray-400 hover:text-white transition whitespace-nowrap">
+                    Ready for Trial (<span id="catCountReady">0</span>)
+                </button>
+                <button type="button" onclick="setOrdersCategory('due')" id="tab-cat-due"
+                        class="order-tab-btn px-3.5 py-2.5 font-semibold border-b-2 border-transparent text-gray-400 hover:text-white transition whitespace-nowrap text-rose-400">
+                    <i class="fas fa-indian-rupee-sign"></i> Remaining Due (<span id="catCountDue" class="font-bold">0</span>)
+                </button>
+                <button type="button" onclick="setOrdersCategory('delivered')" id="tab-cat-delivered"
+                        class="order-tab-btn px-3.5 py-2.5 font-semibold border-b-2 border-transparent text-gray-400 hover:text-white transition whitespace-nowrap">
+                    Delivered (<span id="catCountDelivered">0</span>)
+                </button>
+                <button type="button" onclick="setOrdersCategory('vip')" id="tab-cat-vip"
+                        class="order-tab-btn px-3.5 py-2.5 font-semibold border-b-2 border-transparent text-gray-400 hover:text-white transition whitespace-nowrap flex items-center gap-1">
+                    <i class="fas fa-crown text-amber-400"></i> VIP Members (<span id="catCountVip">0</span>)
+                </button>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Order No</th>
+                            <th>Customer / Dress</th>
+                            <th>Current Stage</th>
+                            <th>Target Date</th>
+                            <th>Amount</th>
+                            <th>Change Status</th>
+                            <th>Naap</th>
+                            <th>Quick Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ordersTableBody">
+                        <tr><td colspan="8" class="text-center text-gray-500 py-8">Loading live orders...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Customer Naap Book Quick Access -->
+        <div class="admin-card p-6">
+            <div class="flex justify-between items-center mb-4">
+                <div>
+                    <h3 class="font-bold text-white text-base">Digital Naap Locker (Customer Measurements)</h3>
+                    <p class="text-xs text-gray-400">Quickly inspect customer fitting profiles and repeat measurements</p>
+                </div>
+                <input type="text" id="customerSearch" placeholder="Search customer..." class="bg-[#101010] border border-neutral-700 rounded px-3 py-1.5 text-xs text-white focus:border-amber-400">
+            </div>
+            <div id="customerListContainer" class="space-y-3">
+                <!-- Dynamically loaded via customer-management.js -->
+            </div>
+        </div>
+
+    </div>
+
+    <!-- New Order & Naap Modal -->
+    <div id="newOrderModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-[#171717] border border-amber-500/30 rounded-2xl w-full max-w-2xl p-6 sm:p-8 space-y-6 shadow-2xl relative my-8">
+            <div class="flex justify-between items-center border-b border-neutral-800 pb-4">
+                <div>
+                    <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                        <i class="fas fa-tape text-amber-400"></i> New Order & Digital Naap Entry
+                    </h3>
+                    <p class="text-xs text-gray-400">Enter order and measurement details for customer tracking</p>
+                </div>
+                <button onclick="closeNewOrderModal()" class="text-gray-400 hover:text-white text-lg p-1">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <form id="newOrderForm" class="space-y-4">
+                <!-- Customer Details -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs uppercase text-gray-400 mb-1">Customer Full Name *</label>
+                        <input type="text" id="orderCustName" required placeholder="e.g. Ramesh Shah"
+                               class="w-full bg-[#101010] border border-neutral-700 rounded-lg px-3 py-2 text-sm text-white focus:border-amber-400 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs uppercase text-gray-400 mb-1">Mobile Number (For Tracking) *</label>
+                        <div class="flex gap-2">
+                            <select id="orderPhoneCountry" class="bg-[#101010] border border-neutral-700 rounded-lg px-2 py-2 text-sm text-white focus:border-amber-400">
+                                <option value="977">Nepal (+977)</option>
+                                <option value="91">India (+91)</option>
+                            </select>
+                            <input type="tel" id="orderCustPhone" required placeholder="98XXXXXXXX / 98765XXXXX"
+                                   class="min-w-0 flex-1 bg-[#101010] border border-neutral-700 rounded-lg px-3 py-2 text-sm text-white focus:border-amber-400 focus:outline-none">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dress & Dates -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-xs uppercase text-gray-400 mb-1">Dress Type *</label>
+                        <select id="orderDressType" required
+                                class="w-full bg-[#101010] border border-neutral-700 rounded-lg px-3 py-2 text-sm text-white focus:border-amber-400 focus:outline-none">
+                            <option value="3-Piece Coat Pant">3-Piece Coat Pant</option>
+                            <option value="2-Piece Suit">2-Piece Suit</option>
+                            <option value="Bridal Lehenga">Bridal Lehenga</option>
+                            <option value="Sherwani / Kurta">Sherwani / Kurta</option>
+                            <option value="Ladies Designer Suit">Ladies Designer Suit</option>
+                            <option value="Formal Shirt & Pant">Formal Shirt & Pant</option>
+                            <option value="Safari Suit">Safari Suit</option>
+                            <option value="Kids Wear">Kids Wear</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs uppercase text-gray-400 mb-1">Fabric Details</label>
+                        <input type="text" id="orderFabric" placeholder="e.g. Italian Wool / Shop"
+                               class="w-full bg-[#101010] border border-neutral-700 rounded-lg px-3 py-2 text-sm text-white focus:border-amber-400 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs uppercase text-gray-400 mb-1">Delivery Date *</label>
+                        <input type="date" id="orderDeliveryDate" required
+                               class="w-full bg-[#101010] border border-neutral-700 rounded-lg px-3 py-2 text-sm text-white focus:border-amber-400 focus:outline-none [color-scheme:dark]">
+                    </div>
+                </div>
+
+                <!-- Digital Naap (Measurements) -->
+                <div class="border border-neutral-800 rounded-xl p-4 bg-[#121212]/50 space-y-3">
+                    <div class="flex items-center gap-2 text-xs uppercase font-bold text-amber-400">
+                        <i class="fas fa-ruler-combined"></i> Customer Naap (Inches)
+                    </div>
+                    <div class="grid grid-cols-3 sm:grid-cols-6 gap-3 text-center">
+                        <div>
+                            <label class="block text-[10px] text-gray-400 mb-0.5">Length</label>
+                            <input type="text" id="naapLength" placeholder="29" class="w-full bg-[#101010] border border-neutral-700 rounded p-1.5 text-xs text-white text-center focus:border-amber-400">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] text-gray-400 mb-0.5">Chest</label>
+                            <input type="text" id="naapChest" placeholder="38" class="w-full bg-[#101010] border border-neutral-700 rounded p-1.5 text-xs text-white text-center focus:border-amber-400">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] text-gray-400 mb-0.5">Waist</label>
+                            <input type="text" id="naapWaist" placeholder="32" class="w-full bg-[#101010] border border-neutral-700 rounded p-1.5 text-xs text-white text-center focus:border-amber-400">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] text-gray-400 mb-0.5">Shoulder</label>
+                            <input type="text" id="naapShoulder" placeholder="17.5" class="w-full bg-[#101010] border border-neutral-700 rounded p-1.5 text-xs text-white text-center focus:border-amber-400">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] text-gray-400 mb-0.5">Sleeve</label>
+                            <input type="text" id="naapSleeve" placeholder="24" class="w-full bg-[#101010] border border-neutral-700 rounded p-1.5 text-xs text-white text-center focus:border-amber-400">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] text-gray-400 mb-0.5">Collar</label>
+                            <input type="text" id="naapCollar" placeholder="15" class="w-full bg-[#101010] border border-neutral-700 rounded p-1.5 text-xs text-white text-center focus:border-amber-400">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Billing & Stage -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-xs uppercase text-gray-400 mb-1">Total Amount (₹) *</label>
+                        <input type="number" id="orderTotalAmt" required placeholder="5000"
+                               class="w-full bg-[#101010] border border-neutral-700 rounded-lg px-3 py-2 text-sm text-white focus:border-amber-400 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs uppercase text-gray-400 mb-1">Advance Paid (₹)</label>
+                        <input type="number" id="orderAdvancePaid" placeholder="2000" value="0"
+                               class="w-full bg-[#101010] border border-neutral-700 rounded-lg px-3 py-2 text-sm text-white focus:border-amber-400 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs uppercase text-gray-400 mb-1">Initial Status</label>
+                        <select id="orderInitialStatus"
+                                class="w-full bg-[#101010] border border-neutral-700 rounded-lg px-3 py-2 text-sm text-white focus:border-amber-400 focus:outline-none">
+                            <option value="measurement">Measurement Taken</option>
+                            <option value="cutting">Pattern Cutting</option>
+                            <option value="stitching">Stitching</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs uppercase text-gray-400 mb-1">Special Notes / Design Details</label>
+                    <input type="text" id="orderNotes" placeholder="e.g. Peak lapel, 2 buttons, urgent delivery"
+                           class="w-full bg-[#101010] border border-neutral-700 rounded-lg px-3 py-2 text-sm text-white focus:border-amber-400 focus:outline-none">
+                </div>
+
+                <div class="flex justify-end gap-3 pt-4 border-t border-neutral-800">
+                    <button type="button" onclick="closeNewOrderModal()" class="px-5 py-2.5 rounded-lg border border-neutral-700 text-gray-300 hover:text-white text-xs uppercase tracking-wider">
+                        Cancel
+                    </button>
+                    <button type="submit" class="px-6 py-2.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold text-xs uppercase tracking-wider transition shadow-lg shadow-amber-500/20">
+                        Save Order to Database
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- View Naap Slip Modal -->
+    <div id="viewNaapModal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-[#171717] border border-amber-500/40 rounded-2xl w-full max-w-xl p-6 sm:p-8 space-y-6 shadow-2xl relative my-8 text-white">
+            <div class="flex justify-between items-start border-b border-neutral-800 pb-4">
+                <div>
+                    <span class="text-[10px] uppercase tracking-widest text-amber-400 font-bold">OM Tailor • Workshop Measurement Record</span>
+                    <h3 class="text-2xl font-serif font-bold text-white mt-1" id="slipCustomerName">Customer Name</h3>
+                    <p class="text-xs text-gray-400" id="slipOrderRef">Order: OM-XXXX • Phone: 98XXXXXXXX</p>
+                </div>
+                <button onclick="closeNaapModal()" class="text-gray-400 hover:text-white text-xl p-1">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <!-- Garment and Delivery -->
+            <div class="grid grid-cols-2 gap-3 p-3 bg-neutral-900 rounded-xl border border-neutral-800 text-xs">
+                <div>
+                    <span class="text-gray-400 block text-[10px] uppercase">Dress Type</span>
+                    <span class="font-semibold text-amber-400" id="slipDressType">--</span>
+                </div>
+                <div>
+                    <span class="text-gray-400 block text-[10px] uppercase">Target Delivery</span>
+                    <span class="font-semibold text-emerald-400" id="slipDeliveryDate">--</span>
+                </div>
+            </div>
+
+            <!-- Measurement Grid -->
+            <div>
+                <h4 class="text-xs uppercase tracking-wider text-gray-400 font-bold mb-3 flex items-center gap-2">
+                    <i class="fas fa-ruler-combined text-amber-400"></i> Body Measurements (नाप - Inches)
+                </h4>
+                <div class="grid grid-cols-3 sm:grid-cols-6 gap-3 text-center" id="slipNaapGrid">
+                    <div class="p-3 bg-[#111] rounded-xl border border-neutral-800">
+                        <div class="text-[10px] text-gray-400 uppercase">Length (लंबाई)</div>
+                        <div class="text-lg font-bold text-amber-400 mt-1" id="naapValLength">--</div>
+                    </div>
+                    <div class="p-3 bg-[#111] rounded-xl border border-neutral-800">
+                        <div class="text-[10px] text-gray-400 uppercase">Chest (सीना)</div>
+                        <div class="text-lg font-bold text-amber-400 mt-1" id="naapValChest">--</div>
+                    </div>
+                    <div class="p-3 bg-[#111] rounded-xl border border-neutral-800">
+                        <div class="text-[10px] text-gray-400 uppercase">Waist (कमर)</div>
+                        <div class="text-lg font-bold text-amber-400 mt-1" id="naapValWaist">--</div>
+                    </div>
+                    <div class="p-3 bg-[#111] rounded-xl border border-neutral-800">
+                        <div class="text-[10px] text-gray-400 uppercase">Shoulder (तीरा)</div>
+                        <div class="text-lg font-bold text-amber-400 mt-1" id="naapValShoulder">--</div>
+                    </div>
+                    <div class="p-3 bg-[#111] rounded-xl border border-neutral-800">
+                        <div class="text-[10px] text-gray-400 uppercase">Sleeve (आस्तीन)</div>
+                        <div class="text-lg font-bold text-amber-400 mt-1" id="naapValSleeve">--</div>
+                    </div>
+                    <div class="p-3 bg-[#111] rounded-xl border border-neutral-800">
+                        <div class="text-[10px] text-gray-400 uppercase">Collar (गला)</div>
+                        <div class="text-lg font-bold text-amber-400 mt-1" id="naapValCollar">--</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notes & Fabric -->
+            <div class="p-3 bg-neutral-900/60 rounded-xl border border-neutral-800 text-xs space-y-1">
+                <div><span class="text-gray-400">Fabric:</span> <span class="text-gray-200" id="slipFabric">--</span></div>
+                <div><span class="text-gray-400">Special Notes:</span> <span class="text-gray-200" id="slipNotes">--</span></div>
+            </div>
+
+            <!-- Modal Action Buttons -->
+            <div class="flex flex-wrap justify-between items-center gap-3 pt-4 border-t border-neutral-800">
+                <a id="slipWhatsAppBtn" href="#" target="_blank" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs uppercase tracking-wider rounded-lg transition flex items-center gap-2">
+                    <i class="fab fa-whatsapp"></i> Send Naap to Customer
+                </a>
+                <div class="flex gap-2">
+                    <button onclick="printNaapSlip()" class="px-4 py-2 bg-neutral-800 hover:bg-neutral-700 text-gray-200 text-xs font-semibold rounded-lg transition flex items-center gap-1.5">
+                        <i class="fas fa-print"></i> Print Slip
+                    </button>
+                    <button onclick="closeNaapModal()" class="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold text-xs uppercase tracking-wider rounded-lg transition">
+                        Done
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ready Order Photo Modal -->
+    <div id="readyPhotoModal" class="hidden fixed inset-0 z-[60] bg-black/85 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-[#171717] border border-amber-500/30 rounded-2xl w-full max-w-md p-6 space-y-4 shadow-2xl">
+            <div>
+                <h3 class="text-lg font-bold text-white"><i class="fas fa-camera text-amber-400 mr-2"></i> Ready Order Photo</h3>
+                <p class="text-xs text-gray-400 mt-1">Camera se photo लें या image scan/upload करें.</p>
+            </div>
+            <input type="file" id="readyOrderPhoto" accept="image/*" capture="environment"
+                   class="w-full text-xs text-gray-300 file:mr-3 file:rounded-lg file:border-0 file:bg-amber-500 file:px-3 file:py-2 file:text-xs file:font-bold">
+            <div id="readyPhotoPreview" class="hidden rounded-xl border border-neutral-700 overflow-hidden bg-black">
+                <img id="readyPhotoPreviewImg" class="w-full max-h-72 object-contain" alt="Ready order preview">
+            </div>
+            <div class="flex justify-end gap-2">
+                <button onclick="closeReadyPhotoModal()" class="px-4 py-2 border border-neutral-700 rounded-lg text-xs text-gray-300">Cancel</button>
+                <button onclick="confirmReadyWithPhoto()" class="px-4 py-2 bg-amber-500 text-neutral-950 rounded-lg text-xs font-bold">Save & Mark Ready</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Complete Customer Details Edit Modal -->
+    <div id="editCustomerModal" class="hidden fixed inset-0 z-[70] bg-black/85 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-[#171717] border border-blue-500/30 rounded-2xl w-full max-w-3xl p-6 space-y-5 shadow-2xl my-8">
+            <div class="flex justify-between items-center border-b border-neutral-800 pb-4">
+                <div>
+                    <h3 class="text-xl font-bold text-white"><i class="fas fa-user-edit text-blue-400 mr-2"></i>Edit Customer - All Details</h3>
+                    <p class="text-xs text-gray-400 mt-1">Name, phone, address, नाप, order, billing and status sab yahan change karein.</p>
+                </div>
+                <button onclick="closeEditCustomerModal()" class="text-gray-400 hover:text-white text-xl"><i class="fas fa-times"></i></button>
+            </div>
+            <form id="editCustomerForm" class="space-y-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    <div>
+                        <label class="block text-[10px] uppercase text-gray-400 mb-1">Customer Name *</label>
+                        <input id="editCustomerName" required class="w-full bg-[#101010] border border-neutral-700 rounded-lg px-3 py-2 text-sm text-white focus:border-blue-400">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] uppercase text-gray-400 mb-1">Country Code</label>
+                        <select id="editCustomerCountry" class="w-full bg-[#101010] border border-neutral-700 rounded-lg px-3 py-2 text-sm text-white focus:border-blue-400">
+                            <option value="977">Nepal (+977)</option>
+                            <option value="91">India (+91)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] uppercase text-gray-400 mb-1">Phone Number *</label>
+                        <input id="editCustomerPhone" required type="tel" class="w-full bg-[#101010] border border-neutral-700 rounded-lg px-3 py-2 text-sm text-white focus:border-blue-400">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] uppercase text-gray-400 mb-1">Address / City</label>
+                        <input id="editCustomerAddress" class="w-full bg-[#101010] border border-neutral-700 rounded-lg px-3 py-2 text-sm text-white focus:border-blue-400">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] uppercase text-gray-400 mb-1">Dress Type</label>
+                        <input id="editCustomerDress" class="w-full bg-[#101010] border border-neutral-700 rounded-lg px-3 py-2 text-sm text-white focus:border-blue-400">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] uppercase text-gray-400 mb-1">Fabric</label>
+                        <input id="editCustomerFabric" class="w-full bg-[#101010] border border-neutral-700 rounded-lg px-3 py-2 text-sm text-white focus:border-blue-400">
+                    </div>
+                </div>
+
+                <div class="border border-neutral-800 rounded-xl p-3 bg-[#121212]/50">
+                    <p class="text-[10px] uppercase font-bold text-blue-400 mb-2">Customer Naap / Measurements</p>
+                    <div class="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                        <div><label class="text-[10px] text-gray-400">Length</label><input id="editNaapLength" class="w-full mt-1 bg-[#101010] border border-neutral-700 rounded p-1.5 text-xs text-white text-center"></div>
+                        <div><label class="text-[10px] text-gray-400">Chest</label><input id="editNaapChest" class="w-full mt-1 bg-[#101010] border border-neutral-700 rounded p-1.5 text-xs text-white text-center"></div>
+                        <div><label class="text-[10px] text-gray-400">Waist</label><input id="editNaapWaist" class="w-full mt-1 bg-[#101010] border border-neutral-700 rounded p-1.5 text-xs text-white text-center"></div>
+                        <div><label class="text-[10px] text-gray-400">Shoulder</label><input id="editNaapShoulder" class="w-full mt-1 bg-[#101010] border border-neutral-700 rounded p-1.5 text-xs text-white text-center"></div>
+                        <div><label class="text-[10px] text-gray-400">Sleeve</label><input id="editNaapSleeve" class="w-full mt-1 bg-[#101010] border border-neutral-700 rounded p-1.5 text-xs text-white text-center"></div>
+                        <div><label class="text-[10px] text-gray-400">Collar</label><input id="editNaapCollar" class="w-full mt-1 bg-[#101010] border border-neutral-700 rounded p-1.5 text-xs text-white text-center"></div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    <div><label class="block text-[10px] uppercase text-gray-400 mb-1">Delivery Date</label><input id="editCustomerDeliveryDate" type="date" class="w-full bg-[#101010] border border-neutral-700 rounded-lg px-3 py-2 text-sm text-white [color-scheme:dark]"></div>
+                    <div><label class="block text-[10px] uppercase text-gray-400 mb-1">Total Amount</label><input id="editCustomerTotal" type="number" min="0" class="w-full bg-[#101010] border border-neutral-700 rounded-lg px-3 py-2 text-sm text-white"></div>
+                    <div><label class="block text-[10px] uppercase text-gray-400 mb-1">Advance Paid</label><input id="editCustomerAdvance" type="number" min="0" class="w-full bg-[#101010] border border-neutral-700 rounded-lg px-3 py-2 text-sm text-white"></div>
+                    <div><label class="block text-[10px] uppercase text-gray-400 mb-1">Remaining Due</label><input id="editCustomerDue" type="number" min="0" class="w-full bg-[#101010] border border-neutral-700 rounded-lg px-3 py-2 text-sm text-white"></div>
+                    <div><label class="block text-[10px] uppercase text-gray-400 mb-1">Order Status</label><select id="editCustomerStatus" class="w-full bg-[#101010] border border-neutral-700 rounded-lg px-3 py-2 text-sm text-white"><option value="measurement">Measurement</option><option value="cutting">Cutting</option><option value="stitching">Stitching</option><option value="finishing">Finishing</option><option value="ready">Ready</option><option value="delivered">Delivered</option></select></div>
+                    <div><label class="block text-[10px] uppercase text-gray-400 mb-1">Order Number</label><input id="editCustomerOrderNumber" class="w-full bg-[#101010] border border-neutral-700 rounded-lg px-3 py-2 text-sm text-white"></div>
+                </div>
+                <div>
+                    <label class="block text-[10px] uppercase text-gray-400 mb-1">Special Notes</label>
+                    <textarea id="editCustomerNotes" rows="3" class="w-full bg-[#101010] border border-neutral-700 rounded-lg px-3 py-2 text-sm text-white"></textarea>
+                </div>
+                <div class="flex justify-end gap-2 pt-3 border-t border-neutral-800">
+                    <button type="button" onclick="closeEditCustomerModal()" class="px-4 py-2 rounded-lg border border-neutral-700 text-gray-300 text-xs">Cancel</button>
+                    <button type="submit" class="px-5 py-2 rounded-lg bg-blue-500 hover:bg-blue-400 text-white font-bold text-xs"><i class="fas fa-save mr-1"></i> Save All Details</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Delivery & Payment Confirmation Modal -->
+    <div id="deliveryModal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-[#171717] border border-emerald-500/40 rounded-2xl w-full max-w-lg p-6 sm:p-8 space-y-6 shadow-2xl relative my-8 text-white">
+            <div class="flex justify-between items-start border-b border-neutral-800 pb-4">
+                <div>
+                    <span class="text-[10px] uppercase tracking-widest text-emerald-400 font-bold flex items-center gap-1.5">
+                        <i class="fas fa-truck-loading"></i> Order Delivery & Final Billing
+                    </span>
+                    <h3 class="text-xl font-bold text-white mt-1" id="delivCustName">Customer Name</h3>
+                    <p class="text-xs text-gray-400" id="delivOrderRef">Order: OM-XXXX</p>
+                </div>
+                <button onclick="closeDeliveryModal()" class="text-gray-400 hover:text-white text-xl p-1">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <!-- Due Balance Summary -->
+            <div class="p-4 bg-neutral-900 rounded-xl border border-neutral-800 flex justify-between items-center">
+                <div>
+                    <span class="text-xs text-gray-400 block">Remaining Due Amount</span>
+                    <span class="text-2xl font-bold text-amber-400" id="delivDueAmount">₹0</span>
+                </div>
+                <div class="text-right">
+                    <span class="text-xs text-gray-400 block">Total Bill</span>
+                    <span class="text-sm font-semibold text-white" id="delivTotalAmount">₹0</span>
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs uppercase tracking-wider text-gray-400 mb-1.5">Delivery ke baad Remaining Due (Rs.)</label>
+                <input type="number" id="delivRemainingDue" min="0" value="0"
+                       class="w-full bg-[#101010] border border-neutral-700 rounded-lg px-3 py-2.5 text-sm text-white focus:border-emerald-400 focus:outline-none">
+                <p class="text-[10px] text-gray-500 mt-1">Yahin jo amount likhenge, wahi Remaining Due section mein dikhai dega.</p>
+            </div>
+
+            <!-- Delivery Date & Time Picker -->
+            <div>
+                <label class="block text-xs uppercase tracking-wider text-gray-400 mb-1.5">
+                    <i class="fas fa-clock text-emerald-400"></i> Delivered Date & Time
+                </label>
+                <input type="datetime-local" id="delivDateTime"
+                       class="w-full bg-[#101010] border border-neutral-700 rounded-lg px-3 py-2.5 text-sm text-white focus:border-emerald-400 focus:outline-none [color-scheme:dark]">
+            </div>
+
+            <!-- Payment Method Selector -->
+            <div>
+                <label class="block text-xs uppercase tracking-wider text-gray-400 mb-2">
+                    <i class="fas fa-wallet text-amber-400"></i> Payment Collection Mode
+                </label>
+                <div class="grid grid-cols-2 gap-3">
+                    <label class="flex items-center gap-2 p-3 bg-neutral-900 border border-neutral-700 rounded-xl cursor-pointer hover:border-amber-400 transition">
+                        <input type="radio" name="delivPaymentMode" value="Cash" checked onchange="toggleDeliveryQr(false)" class="accent-amber-400">
+                        <span class="text-xs font-semibold text-white flex items-center gap-1.5">
+                            <i class="fas fa-money-bill-wave text-emerald-400"></i> Cash (नकद)
+                        </span>
+                    </label>
+                    <label class="flex items-center gap-2 p-3 bg-neutral-900 border border-neutral-700 rounded-xl cursor-pointer hover:border-amber-400 transition">
+                        <input type="radio" name="delivPaymentMode" value="Online QR" onchange="toggleDeliveryQr(true)" class="accent-amber-400">
+                        <span class="text-xs font-semibold text-white flex items-center gap-1.5">
+                            <i class="fas fa-qrcode text-amber-400"></i> Online QR (स्कैनर)
+                        </span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- QR Code Preview Section -->
+            <div id="delivQrBox" class="hidden p-5 bg-black/60 rounded-xl border border-amber-500/30 text-center space-y-3">
+                <span class="text-xs text-amber-400 font-semibold block">Scan OM Tailor QR Code to Pay</span>
+                <div class="bg-white p-3 rounded-xl inline-block shadow-lg mx-auto">
+                    <img id="delivQrImg" src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=OM%20Tailor%20Payment" alt="OM Tailor Payment QR" class="w-40 h-40 object-contain mx-auto">
+                </div>
+                <div class="text-[11px] text-gray-400">
+                    Supports eSewa, Fonepay, Khalti & UPI / Mobile Banking
+                </div>
+            </div>
+
+            <!-- Confirmation Buttons -->
+            <div class="flex justify-end gap-3 pt-3 border-t border-neutral-800">
+                <button type="button" onclick="closeDeliveryModal()" class="px-5 py-2.5 rounded-lg border border-neutral-700 text-gray-300 hover:text-white text-xs uppercase tracking-wider">
+                    Cancel
+                </button>
+                <button type="button" onclick="confirmOrderDelivery()" class="px-6 py-2.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-neutral-950 font-bold text-xs uppercase tracking-wider transition shadow-lg shadow-emerald-500/20 flex items-center gap-2">
+                    <i class="fas fa-check-double"></i> Confirm Delivered
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Feature 2: Digital Invoice / Bill Slip Modal (Printable) -->
+    <div id="invoiceModal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-[#181818] border border-amber-500/40 rounded-2xl w-full max-w-xl p-6 sm:p-8 space-y-6 shadow-2xl relative my-8 text-white printable-invoice">
+            <!-- Header -->
+            <div class="flex justify-between items-start border-b border-neutral-700 pb-4">
+                <div>
+                    <h2 class="text-2xl font-serif font-bold text-amber-400 tracking-wider">OM TAILOR</h2>
+                    <p class="text-xs uppercase tracking-widest text-gray-400">Bespoke Luxury Tailoring</p>
+                    <p class="text-[11px] text-gray-400 mt-0.5">Nagwa, Birgunj, Nepal • Tel: +977-9807216628</p>
+                </div>
+                <div class="text-right">
+                    <span class="px-2.5 py-1 bg-amber-500/20 text-amber-400 border border-amber-500/40 rounded text-[10px] font-bold uppercase tracking-wider">Official Bill Slip</span>
+                    <div class="text-xs font-mono text-white mt-1.5" id="invNumber">INV-2026-XXXX</div>
+                    <div class="text-[11px] text-gray-400" id="invIssueDate">Date: --</div>
+                </div>
+            </div>
+
+            <!-- Customer Details & Order Meta -->
+            <div class="grid grid-cols-2 gap-4 p-3 bg-neutral-900 rounded-xl border border-neutral-800 text-xs">
+                <div>
+                    <span class="text-gray-400 block text-[10px] uppercase tracking-wider">Customer Name</span>
+                    <span class="font-bold text-white text-sm" id="invCustName">--</span>
+                    <span class="text-gray-400 block mt-0.5" id="invCustPhone">Phone: --</span>
+                </div>
+                <div class="text-right">
+                    <span class="text-gray-400 block text-[10px] uppercase tracking-wider">Target Delivery</span>
+                    <span class="font-semibold text-emerald-400 text-sm" id="invDeliveryDate">--</span>
+                    <span class="text-gray-400 block mt-0.5" id="invStatusBadge">Status: --</span>
+                </div>
+            </div>
+
+            <!-- Invoice Item Table -->
+            <div class="overflow-hidden rounded-xl border border-neutral-800">
+                <table class="w-full text-xs text-left">
+                    <thead class="bg-neutral-900 text-gray-400 border-b border-neutral-800">
+                        <tr>
+                            <th class="p-2.5">Item Description</th>
+                            <th class="p-2.5 text-center">Qty</th>
+                            <th class="p-2.5 text-right">Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-neutral-800">
+                        <tr>
+                            <td class="p-2.5">
+                                <span class="font-bold text-white block" id="invDressType">--</span>
+                                <span class="text-[11px] text-gray-400" id="invFabric">Fabric: Customer Material</span>
+                            </td>
+                            <td class="p-2.5 text-center">1</td>
+                            <td class="p-2.5 text-right font-semibold text-white" id="invTotalAmt">₹0</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Billing Summary -->
+            <div class="p-3.5 bg-neutral-900 rounded-xl border border-neutral-800 space-y-1.5 text-xs">
+                <div class="flex justify-between text-gray-300">
+                    <span>Subtotal</span>
+                    <span id="invSubtotal" class="font-medium text-white">₹0</span>
+                </div>
+                <div class="flex justify-between text-gray-300">
+                    <span>Advance Deposit</span>
+                    <span id="invAdvance" class="font-medium text-emerald-400">₹0</span>
+                </div>
+                <div class="flex justify-between text-sm font-bold border-t border-neutral-800 pt-1.5">
+                    <span class="text-white">Remaining Balance Due</span>
+                    <span id="invBalance" class="text-amber-400">₹0</span>
+                </div>
+            </div>
+
+            <!-- Guarantee & Payment QR Section (No Naap / Napi) -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-center p-3.5 bg-neutral-900 rounded-xl border border-neutral-800 text-[11px]">
+                <div class="sm:col-span-2 space-y-1">
+                    <div class="text-[11px] font-semibold text-emerald-400 flex items-center gap-1.5">
+                        <i class="fas fa-shield-alt"></i> 30-Day Master Fitting Guarantee
+                    </div>
+                    <p class="text-[10px] text-gray-400">
+                        Free minor alteration within 30 days of delivery.
+                    </p>
+                    <p class="text-[10px] text-amber-400/90 font-medium pt-0.5">
+                        ✨ Thank you for choosing OM Tailor! Please visit again.
+                    </p>
+                </div>
+                <div class="text-center sm:text-right" id="invQrContainer">
+                    <div class="bg-white p-1 rounded-lg inline-block shadow">
+                        <img id="invQrImage" src="https://api.qrserver.com/v1/create-qr-code/?size=90x90&data=OMTailor" alt="Pay QR" class="w-14 h-14 object-contain mx-auto">
+                    </div>
+                    <div class="text-[9px] text-gray-400 mt-0.5">Scan to Pay Due</div>
+                </div>
+            </div>
+
+            <!-- Action Buttons (Hidden when printing) -->
+            <div class="flex flex-wrap justify-between items-center gap-3 pt-4 border-t border-neutral-800 no-print">
+                <a id="invWhatsAppShare" href="#" target="_blank" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs uppercase tracking-wider rounded-lg transition flex items-center gap-1.5">
+                    <i class="fab fa-whatsapp"></i> Send Bill on WhatsApp
+                </a>
+                <div class="flex gap-2">
+                    <button onclick="printInvoiceOnly()" class="px-4 py-2 bg-neutral-800 hover:bg-neutral-700 text-gray-200 text-xs font-semibold rounded-lg transition flex items-center gap-1.5">
+                        <i class="fas fa-print"></i> Print Bill
+                    </button>
+                    <button onclick="closeInvoiceModal()" class="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold text-xs uppercase tracking-wider rounded-lg transition">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="../assets/js/config/supabase-client.js"></script>
+    <script src="../assets/js/services/auth.js"></script>
+    <script src="../assets/js/services/customer-service.js"></script>
+    <script src="../assets/js/services/order-service.js"></script>
+    <script src="../assets/js/services/payment-service.js"></script>
+    <script src="../assets/js/admin/dashboard.js"></script>
+    <script src="../assets/js/admin/customer-management.js"></script>
+</body>
+</html>

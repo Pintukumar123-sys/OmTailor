@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Order Tracking - OM Tailor</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Cormorant+Garamond:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="../assets/css/styles.css">
+    <link rel="stylesheet" href="../assets/css/customer.css">
+</head>
+<body class="customer-body">
+
+    <!-- Top Navigation (Customer Profile Dashboard) -->
+    <header class="border-b border-neutral-800 bg-[#121212] px-4 sm:px-6 py-4 flex justify-between items-center sticky top-0 z-40">
+        <a href="../index.html" class="flex items-center gap-3">
+            <h1 class="text-2xl font-serif font-bold text-amber-400">OM TAILOR</h1>
+            <span class="text-xs bg-amber-500/20 text-amber-400 border border-amber-500/30 px-2 py-0.5 rounded uppercase font-semibold">Customer Dashboard</span>
+        </a>
+        <div class="flex items-center gap-3 sm:gap-4 text-xs">
+            <div id="navCustomerChip" class="hidden sm:flex items-center gap-2 bg-neutral-900 border border-neutral-700 px-3 py-1.5 rounded-full">
+                <i class="fas fa-user-circle text-amber-400"></i>
+                <span id="navCustName" class="font-semibold text-white">Customer</span>
+            </div>
+            <a href="../index.html" class="text-gray-400 hover:text-white transition hidden md:inline">Home</a>
+            <button onclick="window.AuthService.logoutCustomer()" class="text-xs text-rose-400 hover:text-rose-300 border border-rose-500/30 hover:border-rose-500/60 px-3 py-1.5 rounded-lg transition flex items-center gap-1.5">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </button>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto px-4 py-8 space-y-6">
+
+        <!-- Empty / Error state -->
+        <div id="trackingEmptyState" class="hidden text-center py-10 bg-[#1a1a1a] rounded-2xl border border-neutral-800">
+            <!-- Dynamic error message -->
+        </div>
+
+        <!-- Customer Welcome Banner -->
+        <div id="customerProfileBanner" class="hidden bg-gradient-to-r from-amber-500/15 via-[#1a1a1a] to-neutral-900 p-6 rounded-2xl border border-amber-500/30 shadow-xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+                <span class="text-[11px] uppercase tracking-widest text-amber-400 font-bold flex items-center gap-1.5">
+                    <i class="fas fa-check-circle"></i> OM Tailor Verified Customer
+                </span>
+                <h2 class="text-2xl font-serif font-bold text-white mt-1">
+                    Welcome, <span id="welcomeCustomerName" class="text-amber-400">Customer</span> 👋
+                </h2>
+                <p class="text-xs text-gray-400 mt-1">
+                </p>
+            </div>
+            <div class="flex items-center gap-3">
+                <div class="px-5 py-2.5 bg-neutral-900 border border-neutral-700 rounded-xl text-center">
+                    <span class="block text-xl font-bold text-amber-400" id="welcomeOrderCount">1</span>
+                    <span class="text-[10px] text-gray-400 uppercase tracking-wider">Total Orders</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Feature 6: VIP Loyalty Club Card -->
+        <div id="vipLoyaltyCard" class="hidden bg-gradient-to-r from-neutral-900 via-[#1c1912] to-neutral-900 border border-amber-500/40 p-6 rounded-2xl shadow-xl space-y-4">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-amber-500/20 pb-3">
+                <div class="flex items-center gap-3">
+                    <span class="w-10 h-10 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-400 flex items-center justify-center text-lg shadow-sm">
+                        <i class="fas fa-crown"></i>
+                    </span>
+                    <div>
+                        <div class="text-sm font-bold text-white flex items-center gap-2">
+                            <span>OM Tailor VIP Club</span>
+                            <span id="vipTierBadge" class="text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-wider">Member</span>
+                        </div>
+                        <p class="text-xs text-gray-400">Exclusive bespoke privileges & repeat stitching rewards</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <div class="text-left sm:text-right">
+                        <span class="text-[10px] uppercase text-gray-400 block font-semibold">Reward Points</span>
+                        <span class="text-xl font-bold text-amber-400" id="vipPoints">50 Pts</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Discount Voucher & Benefits -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                <div class="p-3.5 bg-black/40 rounded-xl border border-amber-500/20 space-y-1">
+                    <span class="text-[10px] uppercase text-amber-400 font-bold block">Unlocked Voucher for Next Order</span>
+                    <div class="text-sm font-bold text-white flex items-center justify-between">
+                        <span id="vipVoucherDesc">10% Welcome Discount</span>
+                        <span class="font-mono bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2 py-0.5 rounded text-xs" id="vipVoucherCode">OM-NEW10</span>
+                    </div>
+                    <p class="text-[10px] text-gray-400">Mention this code at shop to claim your VIP discount!</p>
+                </div>
+                <div class="p-3.5 bg-black/40 rounded-xl border border-neutral-800 space-y-1">
+                    <span class="text-[10px] uppercase text-gray-400 font-bold block">Your VIP Member Privileges</span>
+                    <ul class="text-[11px] text-gray-300 space-y-1" id="vipPerksList">
+                        <!-- Loaded dynamically -->
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Delivered Celebration Card -->
+        <div id="deliveredCelebrationCard" class="hidden bg-gradient-to-r from-emerald-950/70 via-[#142314] to-neutral-900 border-2 border-emerald-500/60 p-6 sm:p-8 rounded-2xl shadow-2xl text-center space-y-4 relative overflow-hidden">
+            <div class="w-16 h-16 mx-auto rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center justify-center text-3xl shadow-lg shadow-emerald-500/20 animate-bounce">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <div>
+                <span class="text-xs uppercase tracking-widest text-emerald-400 font-bold block mb-1">Order Completed & Handed Over</span>
+                <h3 class="text-2xl sm:text-3xl font-serif font-bold text-white">
+                    You have received your order!
+                </h3>
+                <p class="text-sm text-gray-200 mt-1">
+                    Thank you for choosing OM Tailor. Please visit again! ✨
+                </p>
+            </div>
+            <div class="inline-flex flex-wrap items-center justify-center gap-4 bg-black/50 border border-emerald-500/30 px-5 py-2.5 rounded-xl text-xs">
+                <div class="text-gray-300">
+                    <i class="fas fa-calendar-check text-emerald-400"></i> Delivered on: <strong class="text-white font-mono" id="delivDisplayDateTime">--</strong>
+                </div>
+                <div class="text-gray-300 sm:border-l border-neutral-700 sm:pl-4">
+                    <i class="fas fa-receipt text-amber-400"></i> Payment: <strong class="text-emerald-400" id="delivDisplayPayment">Paid</strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- Result Section -->
+        <div id="trackingResultSection" class="space-y-6">
+
+            <!-- Stepper Progress Card -->
+            <div class="bg-[#1a1a1a] p-8 rounded-2xl border border-amber-500/30 shadow-2xl relative overflow-hidden">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-6 border-b border-neutral-800 gap-2">
+                    <div>
+                        <span class="text-xs uppercase tracking-widest text-gray-400">Current Order Reference</span>
+                        <div id="resOrderNumber" class="text-2xl font-mono font-bold text-amber-400">OM-2026-8891</div>
+                    </div>
+                    <div class="text-left sm:text-right">
+                        <span class="text-xs uppercase tracking-widest text-gray-400">Target Delivery</span>
+                        <div id="resDeliveryDate" class="text-lg font-semibold text-emerald-400">12 Nov 2026</div>
+                    </div>
+                </div>
+
+                <!-- Visual Stepper Progress Bar -->
+                <div class="stepper-container my-6">
+                    <div class="stepper-line">
+                        <div id="stepperProgressBar" class="stepper-line-progress" style="width: 50%;"></div>
+                    </div>
+                    <div class="grid grid-cols-6 text-center relative z-10">
+                        <div id="step-measurement" class="step-node completed">
+                            <div class="step-circle"><i class="fas fa-ruler-combined text-sm"></i></div>
+                            <span class="text-[11px] font-medium text-gray-300">Naap Taken</span>
+                        </div>
+                        <div id="step-cutting" class="step-node completed">
+                            <div class="step-circle"><i class="fas fa-cut text-sm"></i></div>
+                            <span class="text-[11px] font-medium text-gray-300">Cutting</span>
+                        </div>
+                        <div id="step-stitching" class="step-node active">
+                            <div class="step-circle"><i class="fas fa-tape text-sm"></i></div>
+                            <span class="text-[11px] font-medium text-amber-400">Stitching</span>
+                        </div>
+                        <div id="step-finishing" class="step-node">
+                            <div class="step-circle"><i class="fas fa-check-double text-sm"></i></div>
+                            <span class="text-[11px] font-medium text-gray-400">Finishing</span>
+                        </div>
+                        <div id="step-ready" class="step-node">
+                            <div class="step-circle"><i class="fas fa-box-open text-sm"></i></div>
+                            <span class="text-[11px] font-medium text-gray-400">Ready</span>
+                        </div>
+                        <div id="step-delivered" class="step-node">
+                            <div class="step-circle"><i class="fas fa-user-check text-sm"></i></div>
+                            <span class="text-[11px] font-medium text-gray-400">Delivered</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Photo shared by the tailor when the order is ready -->
+            <div id="readyOrderPhotoCard" class="hidden bg-[#1a1a1a] p-5 rounded-2xl border border-emerald-500/30 space-y-3">
+                <h3 class="font-bold text-white"><i class="fas fa-camera text-emerald-400 mr-2"></i>Your Ready Order</h3>
+                <img id="readyOrderPhoto" class="w-full max-h-[28rem] object-contain rounded-xl bg-black" alt="Photo of your ready order">
+            </div>
+
+            <!-- Details Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Order Specification -->
+                <div class="bg-[#1a1a1a] p-6 rounded-2xl border border-neutral-800 space-y-4">
+                    <h3 class="font-bold text-white text-base border-b border-neutral-800 pb-2">Garment Specifications</h3>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between"><span class="text-gray-400">Customer Name:</span> <span id="resCustomerName" class="text-white font-medium">--</span></div>
+                        <div class="flex justify-between"><span class="text-gray-400">Dress Type:</span> <span id="resDressType" class="text-amber-400 font-medium">--</span></div>
+                        <div class="flex justify-between"><span class="text-gray-400">Fabric:</span> <span id="resFabric" class="text-gray-200">--</span></div>
+                    </div>
+                </div>
+
+                <!-- Billing & WhatsApp Support -->
+                <div class="bg-[#1a1a1a] p-6 rounded-2xl border border-neutral-800 space-y-4">
+                    <h3 class="font-bold text-white text-base border-b border-neutral-800 pb-2">Billing & Support</h3>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between"><span class="text-gray-400">Total Price:</span> <span id="resTotalAmt" class="text-white font-semibold">--</span></div>
+                        <div class="flex justify-between"><span class="text-gray-400">Remaining Due:</span> <span id="resBalanceDue" class="text-amber-400 font-bold">--</span></div>
+                    </div>
+                    <div class="pt-2 space-y-2">
+                        <button id="custInvoiceBtn" onclick="openCustomerInvoiceModal()" class="w-full py-2.5 bg-neutral-800 hover:bg-neutral-700 text-amber-400 border border-amber-500/30 font-bold rounded-lg text-xs flex items-center justify-center gap-2 transition">
+                            <i class="fas fa-file-invoice text-sm"></i> View & Print Official Bill Slip
+                        </button>
+                        <button id="custPayQrBtn" onclick="openCustomerQrModal()" class="w-full py-2.5 bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold rounded-lg text-xs flex items-center justify-center gap-2 transition shadow-lg shadow-amber-500/20">
+                            <i class="fas fa-qrcode"></i> Pay Remaining Due via Online QR
+                        </button>
+                        <a id="waDirectSupport" href="#" target="_blank"
+                           class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg text-xs flex items-center justify-center gap-2 transition">
+                            <i class="fab fa-whatsapp text-sm"></i> Chat with Masterji on WhatsApp
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order History Section -->
+            <div id="orderHistorySection" class="bg-[#1a1a1a] p-6 rounded-2xl border border-neutral-800 space-y-4">
+                <div class="flex justify-between items-center border-b border-neutral-800 pb-3">
+                    <div>
+                        <h3 class="font-bold text-white text-base flex items-center gap-2">
+                            <i class="fas fa-history text-amber-400"></i> My Orders History (पिछली सारी सिलाई का रिकॉर्ड)
+                        </h3>
+                        <p class="text-xs text-gray-400">All tailoring orders associated with your mobile number</p>
+                    </div>
+                </div>
+                <div id="orderHistoryList" class="space-y-3">
+                    <!-- Populated dynamically via tracking.js -->
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Customer Online Payment QR Modal -->
+    <div id="customerQrModal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-[#171717] border border-amber-500/40 rounded-2xl w-full max-w-sm p-6 text-center space-y-4 shadow-2xl relative text-white">
+            <button onclick="closeCustomerQrModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white text-lg">
+                <i class="fas fa-times"></i>
+            </button>
+            <div>
+                <span class="text-[10px] uppercase tracking-widest text-amber-400 font-bold block">OM Tailor • Online Payment</span>
+                <h3 class="text-lg font-bold text-white mt-1">Scan QR Code to Pay</h3>
+                <p class="text-xs text-gray-400" id="custQrDueLabel">Remaining Due: ₹0</p>
+            </div>
+            <div class="bg-white p-3 rounded-xl inline-block shadow-lg mx-auto">
+                <img id="custQrImage" src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=OMTailor" alt="OM Tailor QR" class="w-44 h-44 object-contain mx-auto">
+            </div>
+            <p class="text-[11px] text-gray-400">
+                Supports eSewa, Fonepay, Khalti, UPI & Mobile Banking. After paying, inform Masterji on WhatsApp with screenshot.
+            </p>
+            <button onclick="closeCustomerQrModal()" class="w-full py-2.5 bg-neutral-800 hover:bg-neutral-700 text-white rounded-lg text-xs font-semibold uppercase tracking-wider">
+                Close
+            </button>
+        </div>
+    </div>
+
+    <!-- Feature 2: Customer Digital Invoice / Bill Slip Modal (Printable) -->
+    <div id="customerInvoiceModal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-[#181818] border border-amber-500/40 rounded-2xl w-full max-w-xl p-6 sm:p-8 space-y-6 shadow-2xl relative my-8 text-white printable-invoice">
+            <!-- Invoice Header -->
+            <div class="flex justify-between items-start border-b border-neutral-700 pb-4">
+                <div>
+                    <h2 class="text-2xl font-serif font-bold text-amber-400 tracking-wider">OM TAILOR</h2>
+                    <p class="text-xs uppercase tracking-widest text-gray-400">Bespoke Luxury Tailoring</p>
+                    <p class="text-[11px] text-gray-400 mt-0.5">Nagwa, Birgunj, Nepal • Tel: +977-9807216628</p>
+                </div>
+                <div class="text-right">
+                    <span class="px-2.5 py-1 bg-amber-500/20 text-amber-400 border border-amber-500/40 rounded text-[10px] font-bold uppercase tracking-wider">Official Bill Slip</span>
+                    <div class="text-xs font-mono text-white mt-1.5" id="custInvNumber">INV-2026-XXXX</div>
+                    <div class="text-[11px] text-gray-400" id="custInvIssueDate">Date: --</div>
+                </div>
+            </div>
+
+            <!-- Customer Details & Order Meta -->
+            <div class="grid grid-cols-2 gap-4 p-3 bg-neutral-900 rounded-xl border border-neutral-800 text-xs">
+                <div>
+                    <span class="text-gray-400 block text-[10px] uppercase tracking-wider">Customer Name</span>
+                    <span class="font-bold text-white text-sm" id="custInvCustName">--</span>
+                    <span class="text-gray-400 block mt-0.5" id="custInvCustPhone">Phone: --</span>
+                </div>
+                <div class="text-right">
+                    <span class="text-gray-400 block text-[10px] uppercase tracking-wider">Target Delivery</span>
+                    <span class="font-semibold text-emerald-400 text-sm" id="custInvDeliveryDate">--</span>
+                    <span class="text-gray-400 block mt-0.5" id="custInvStatusBadge">Status: --</span>
+                </div>
+            </div>
+
+            <!-- Invoice Item Table -->
+            <div class="overflow-hidden rounded-xl border border-neutral-800">
+                <table class="w-full text-xs text-left">
+                    <thead class="bg-neutral-900 text-gray-400 border-b border-neutral-800">
+                        <tr>
+                            <th class="p-2.5">Item Description</th>
+                            <th class="p-2.5 text-center">Qty</th>
+                            <th class="p-2.5 text-right">Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-neutral-800">
+                        <tr>
+                            <td class="p-2.5">
+                                <span class="font-bold text-white block" id="custInvDressType">--</span>
+                                <span class="text-[11px] text-gray-400" id="custInvFabric">Fabric: Selected Fabric</span>
+                            </td>
+                            <td class="p-2.5 text-center">1</td>
+                            <td class="p-2.5 text-right font-semibold text-white" id="custInvTotalAmt">₹0</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Billing Summary -->
+            <div class="p-3.5 bg-neutral-900 rounded-xl border border-neutral-800 space-y-1.5 text-xs">
+                <div class="flex justify-between text-gray-300">
+                    <span>Subtotal</span>
+                    <span id="custInvSubtotal" class="font-medium text-white">₹0</span>
+                </div>
+                <div class="flex justify-between text-gray-300">
+                    <span>Advance Deposit</span>
+                    <span id="custInvAdvance" class="font-medium text-emerald-400">₹0</span>
+                </div>
+                <div class="flex justify-between text-sm font-bold border-t border-neutral-800 pt-1.5">
+                    <span class="text-white">Remaining Balance Due</span>
+                    <span id="custInvBalance" class="text-amber-400">₹0</span>
+                </div>
+            </div>
+
+            <!-- Guarantee & Payment QR Section (No Naap / Napi) -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-center p-3.5 bg-neutral-900 rounded-xl border border-neutral-800 text-[11px]">
+                <div class="sm:col-span-2 space-y-1">
+                    <div class="text-[11px] font-semibold text-emerald-400 flex items-center gap-1.5">
+                        <i class="fas fa-shield-alt"></i> 30-Day Master Fitting Guarantee
+                    </div>
+                    <p class="text-[10px] text-gray-400">
+                        Free minor alteration within 30 days of delivery.
+                    </p>
+                    <p class="text-[10px] text-amber-400/90 font-medium pt-0.5">
+                        ✨ Thank you for choosing OM Tailor! Please visit again.
+                    </p>
+                </div>
+                <div class="text-center sm:text-right" id="custInvQrContainer">
+                    <div class="bg-white p-1 rounded-lg inline-block shadow">
+                        <img id="custInvQrImage" src="https://api.qrserver.com/v1/create-qr-code/?size=90x90&data=OMTailor" alt="Pay QR" class="w-14 h-14 object-contain mx-auto">
+                    </div>
+                    <div class="text-[9px] text-gray-400 mt-0.5">Scan to Pay Due</div>
+                </div>
+            </div>
+
+            <!-- Action Buttons (Hidden when printing) -->
+            <div class="flex flex-wrap justify-between items-center gap-3 pt-4 border-t border-neutral-800 no-print">
+                <button onclick="window.print()" class="px-4 py-2 bg-neutral-800 hover:bg-neutral-700 text-gray-200 text-xs font-semibold rounded-lg transition flex items-center gap-1.5">
+                    <i class="fas fa-print"></i> Print Receipt / Save PDF
+                </button>
+                <button onclick="closeCustomerInvoiceModal()" class="px-5 py-2 bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold text-xs uppercase tracking-wider rounded-lg transition">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="../assets/js/config/supabase-client.js"></script>
+    <script src="../assets/js/services/auth.js"></script>
+    <script src="../assets/js/services/order-service.js"></script>
+    <script src="../assets/js/services/customer-service.js"></script>
+    <script src="../assets/js/customer/tracking.js"></script>
+</body>
+</html>

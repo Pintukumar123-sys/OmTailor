@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login - OM Tailor Portal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Cormorant+Garamond:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="../assets/css/styles.css">
+    <link rel="stylesheet" href="../assets/css/admin.css">
+</head>
+<body class="admin-body flex items-center justify-center min-h-screen px-4 bg-[#0d0d0d]">
+
+    <div class="w-full max-w-md p-8 bg-[#171717] rounded-2xl border border-amber-500/20 shadow-2xl relative overflow-hidden">
+        <!-- Gold Ambient Glow -->
+        <div class="absolute -top-16 -right-16 w-36 h-36 bg-amber-500/10 rounded-full blur-2xl pointer-events-none"></div>
+
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-serif font-bold text-amber-400 tracking-wider">OM TAILOR</h1>
+            <p class="text-xs uppercase tracking-widest text-gray-400 mt-1">Management & Workshop Portal</p>
+        </div>
+
+        <form id="adminLoginForm" class="space-y-5">
+            <div>
+                <label class="block text-xs uppercase tracking-wider text-gray-400 mb-2">Admin Email</label>
+                <div class="relative">
+                    <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-gray-500"><i class="fas fa-envelope"></i></span>
+                    <input type="email" id="adminEmail" required value="admin@omtailor.com"
+                           class="w-full bg-[#101010] border border-neutral-700 rounded-lg pl-10 pr-4 py-3 text-white text-sm focus:border-amber-400 focus:outline-none transition">
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs uppercase tracking-wider text-gray-400 mb-2">Password</label>
+                <div class="relative">
+                    <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-gray-500"><i class="fas fa-lock"></i></span>
+                    <input type="password" id="adminPassword" required value="omtailor123"
+                           class="w-full bg-[#101010] border border-neutral-700 rounded-lg pl-10 pr-4 py-3 text-white text-sm focus:border-amber-400 focus:outline-none transition">
+                </div>
+            </div>
+
+            <div id="loginErrorMsg" class="hidden text-xs text-rose-400 bg-rose-500/10 p-2.5 rounded border border-rose-500/20"></div>
+
+            <button type="submit" class="w-full py-3.5 bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold uppercase tracking-wider rounded-lg text-sm transition-all shadow-lg shadow-amber-500/20">
+                Sign In to Dashboard
+            </button>
+        </form>
+
+        <div class="mt-6 text-center">
+            <a href="../index.html" class="text-xs text-gray-400 hover:text-amber-400 transition flex items-center justify-center gap-2">
+                <i class="fas fa-arrow-left"></i> Return to Main Website
+            </a>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="../assets/js/config/supabase-client.js"></script>
+    <script src="../assets/js/services/auth.js"></script>
+    <script>
+        document.getElementById('adminLoginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('adminEmail').value.trim();
+            const pass = document.getElementById('adminPassword').value.trim();
+            const errEl = document.getElementById('loginErrorMsg');
+
+            errEl.classList.add('hidden');
+            const res = await window.AuthService.loginAdmin(email, pass);
+            if (res.success) {
+                window.location.href = 'dashboard.html';
+            } else {
+                errEl.textContent = res.error || 'Authentication failed';
+                errEl.classList.remove('hidden');
+            }
+        });
+    </script>
+</body>
+</html>

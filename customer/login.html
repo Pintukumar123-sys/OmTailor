@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Profile Login - OM Tailor</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Cormorant+Garamond:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="../assets/css/styles.css">
+    <link rel="stylesheet" href="../assets/css/customer.css">
+</head>
+<body class="customer-body flex items-center justify-center min-h-screen px-4 bg-[#121212]">
+
+    <div class="w-full max-w-md p-8 bg-[#1a1a1a] rounded-2xl border border-amber-500/30 shadow-2xl relative overflow-hidden">
+        <div class="text-center mb-7">
+            <h1 class="text-3xl font-serif font-bold text-amber-400 tracking-wider">OM TAILOR</h1>
+            <p class="text-xs uppercase tracking-widest text-amber-400/80 mt-1 font-semibold">Customer Profile Login</p>
+            <p class="text-xs text-gray-400 mt-2">
+                अपने प्रोफाइल में लॉगिन करें ताकि आप अपने आर्डर का लाइव स्टेटस, डिजिटल नाप रिकॉर्ड, और बिल देख सकें।
+            </p>
+        </div>
+
+        <form id="customerLoginForm" class="space-y-5">
+            <div>
+                <label class="block text-xs uppercase tracking-wider text-gray-300 font-semibold mb-2">
+                    Registered Mobile Number (रजिस्टर्ड मोबाइल नंबर)
+                </label>
+                <div class="relative">
+                    <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-amber-400 font-semibold text-xs">+977</span>
+                    <input type="tel" id="customerPhone" required placeholder="98XXXXXXXX"
+                           class="w-full bg-[#121212] border border-neutral-700 rounded-lg pl-14 pr-4 py-3 text-white text-sm focus:border-amber-400 focus:outline-none transition font-mono">
+                </div>
+                <p class="text-[11px] text-gray-400 mt-1.5 flex items-center gap-1">
+                    <i class="fas fa-info-circle text-amber-400/70"></i> वही नंबर डालें जो आपने नाप/सिलाई के समय दर्ज कराया था।
+                </p>
+            </div>
+
+            <div id="custErrorMsg" class="hidden text-xs text-rose-300 bg-rose-500/15 p-3 rounded-xl border border-rose-500/30"></div>
+
+            <button type="submit" id="loginSubmitBtn" class="w-full py-3.5 bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold uppercase tracking-wider rounded-lg text-sm transition-all shadow-lg shadow-amber-500/20 flex items-center justify-center gap-2">
+                <span>Login to My Profile</span>
+                <i class="fas fa-arrow-right"></i>
+            </button>
+        </form>
+
+        <div class="mt-6 pt-5 border-t border-neutral-800 flex justify-between items-center text-xs text-gray-400">
+            <a href="../index.html" class="hover:text-amber-400 transition flex items-center gap-1.5">
+                <i class="fas fa-home"></i> Back to Home
+            </a>
+            <a href="https://wa.me/9779807216628" target="_blank" class="hover:text-emerald-400 transition flex items-center gap-1 text-emerald-400/90">
+                <i class="fab fa-whatsapp"></i> Need Help?
+            </a>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="../assets/js/config/supabase-client.js"></script>
+    <script src="../assets/js/services/order-service.js"></script>
+    <script src="../assets/js/services/auth.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const rememberedPhone = localStorage.getItem('om_customer_phone');
+            if (rememberedPhone) {
+                const phoneInput = document.getElementById('customerPhone');
+                if (phoneInput) phoneInput.value = rememberedPhone;
+            }
+        });
+
+        document.getElementById('customerLoginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const phone = document.getElementById('customerPhone').value.trim();
+            const err = document.getElementById('custErrorMsg');
+            const btn = document.getElementById('loginSubmitBtn');
+            err.classList.add('hidden');
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>Verifying Customer Profile...</span>';
+
+            const res = await window.AuthService.loginCustomer(phone);
+            if (res.success) {
+                window.location.href = 'tracking.html';
+            } else {
+                err.textContent = res.error;
+                err.classList.remove('hidden');
+                btn.disabled = false;
+                btn.innerHTML = '<span>Login to My Profile</span> <i class="fas fa-arrow-right"></i>';
+            }
+        });
+    </script>
+</body>
+</html>

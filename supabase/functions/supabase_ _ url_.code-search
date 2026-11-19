@@ -1,0 +1,9 @@
+# Query: supabase: { url:
+# ContextLines: 1
+
+1 result - 1 file
+
+index.html:
+  55    googleReviews: { endpoint: "", writeUrl: "" },
+  56:   supabase: { url: " https://incdhvulrwcupencuwwv.supabase.co/rest/v1/", anonKey: "sb_publishable_Sq_vAa6-GIxIezzj_uxQfQ_IKcxztRu", photoBucket: "ready-photos" }
+  57  };
